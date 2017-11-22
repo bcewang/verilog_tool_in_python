@@ -11,21 +11,14 @@ def usage():
     quit()
 
 ## Function open_file()
-def open_file(verilog_file_path):
+def open_file_in_list(verilog_file_path):
     try:
         file = open(verilog_file_path, "r")
-        return file
+        file_text = target_file.readlines()
+        file.close()
+        return file_text
     except:
         print ("ERROR!! Unable to open file: ", verilog_file_path)
-        quit()
-
-
-## Function close_file()
-def close_file(target_file):
-    try:
-        target_file.close()
-    except:
-        print ("ERROR!! Unable to close file")
         quit()
 
 
@@ -38,8 +31,7 @@ if len(sys.argv) != 2:
     usage()
 
 target_file_path = sys.argv[1]
-target_file = open_file(target_file_path)
-file_text = target_file.readlines()
+file_text = open_file(target_file_path)
 for line in file_text:
     print (line)
 
