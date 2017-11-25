@@ -14,7 +14,7 @@ def usage():
 def open_file_in_list(verilog_file_path):
     try:
         file = open(verilog_file_path, "r")
-        file_text = target_file.readlines()
+        file_text = file.readlines()
         file.close()
         return file_text
     except:
@@ -31,7 +31,7 @@ if len(sys.argv) != 2:
     usage()
 
 target_file_path = sys.argv[1]
-file_text = open_file(target_file_path)
+file_text = open_file_in_list(target_file_path)
 for line in file_text:
     print (line)
 
