@@ -33,5 +33,5 @@ if len(sys.argv) != 2:
 target_file_path = sys.argv[1]
 file_text = open_file_in_list(target_file_path)
 for line in file_text:
-    print (line)
+    print (string.strip(line))
 
