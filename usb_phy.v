@@ -1,10 +1,3 @@
-// Configuration restrictions:
-//   none.
-/*
-這個module是usbphy的最上層
-有一個usb_pll負責產生8個phase的clock,
-和usb_grp包起來的其他電路
-*/
 `timescale 1ps/1ps
 
 module usb_phy(
