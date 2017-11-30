@@ -1,4 +1,4 @@
-class token_type:
+class token_type_enum:
     # type EOF
     type_endofstram = 0
     # type :
@@ -24,20 +24,39 @@ class token_type:
     #type `
     type_grave = type_dot + 1
     #type '
-    type_quote = type_grave + 1
+    type_singlequote = type_grave + 1
+    #type "
+    type_doublequote = type_singlequote + 1
     #type @
-    type_at = type_quote + 1
+    type_at = type_doublequote + 1
+    #type +
+    type_plus = type_at + 1
+    #type -
+    type_minus = type_plus + 1
+    #type /
+    type_slash = type_minus + 1
+    #type \
+    type_backslash = type_slash + 1
+    #type ?
+    type_question = type_backslash + 1
+    #type !
+    type_exclamation = type_question + 1
+    #type &
+    type_and = type_exclamation + 1
+    #type |
+    type_or = type_and + 1
+    #type ~
+    type_not = type_or + 1
 
 
-class token_base:
+class token_class:
     token_text = ""
+    token_type = 0
 
-    def __init__(self):  
-        raise NotImplementedError("primitive is abstract") 
+    def __init__(self, text, type):
+        self.token_text = text
+        self.token_type = type
 
     def get_token(self):
         return token_text
 
-
-
-     
