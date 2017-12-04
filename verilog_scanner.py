@@ -1,48 +1,146 @@
 """
     verilog_scanner.py
-    A scanner to handler verilog
+    A scanner to handle verilog
 """
 #!/usr/bin/env python
-import sys
+import re
 import token_type
+import verilog_reader
 
-## Function usage()
-def usage():
-    """ This function shows how to use this script """
-    print("\nERROR!!")
-    print("Usage: verilog_scanner.py [verilog_file]")
-    print("Example: verilog_scanner.py usb.v\n")
-    quit()
+class VerilogScanner:
+    """ A verilog scanner """
+    def __init__(self, verilog_text_list):
+        self.token_query = token_type.TokenTypeDict()
+        self.cur_token = token_type.BasicToken("", 0)
+        self.reader = verilog_reader.VerilogReader(verilog_text_list)
+        self.cur_state = "SCAN_CS_IDLE"
+        self.text_buf = ""
+        self.handler_query = {"SCAN_CS_IDLE" : self.handler_scan_idle,
+                              "SCAN_CS_START" : self.handler_scan_start,
+                              "SCAN_CS_IDENTIFIER" : self.handler_scan_identifier,
+                              "SCAN_CS_NUMBER" : self.handler_scan_number,
+                              "SCAN_CS_NUMBER_TYPE" : self.handler_scan_number_type,
+                              "SCAN_CS_NUMBER_POST" : self.handler_scan_number_post}
 
-## Function open_file()
-def open_file_in_list(verilog_file_path):
-    """ This function open a file and return a clean list with each line """
-    try:
-        with open(verilog_file_path, "r") as file:
-            file_text = file.readlines()
-            clean_text = []
-            for file_line in file_text:
-                clean_text.append(str.strip(str(file_line)))
-            file.close()
-            return clean_text
-    except IOError:
-        print("ERROR!! Unable to open file: ", verilog_file_path)
+
+    def get_next_token(self):
+        """ Accord the header of the current content, return a token """
+        self.cur_state = "SCAN_CS_START"
+        while self.cur_state != "SCAN_CS_IDLE":
+            cur_handler = self.handler_query[self.cur_state]
+            cur_handler()
+
+        return self.cur_token
+
+
+    def handler_scan_idle(self):
+        """ The state handler should not be called """
+        print("ERROR!! The handler of IDLE should not be called in state:\n", self.cur_state)
         quit()
 
 
-###########################
-## Main Start
-###########################
+    def handler_scan_start(self):
+        """ Get a next char and decide jumping to which state """
+        char = self.reader.get_next_valid_char()
+        if char == -1:
+            self.cur_token.token_text = "End of File"
+            self.cur_token.token_type = self.token_query.token_dict["TOKEN_EOF"]
+            self.cur_state = "SCAN_CS_IDLE"
+            return
+        while re.match(r"\s", char):
+            char = self.reader.get_next_valid_char()
+            if char == -1:
+                self.cur_token.token_text = "End of File"
+                self.cur_token.token_type = self.token_query.token_dict["TOKEN_EOF"]
+                self.cur_state = "SCAN_CS_IDLE"
+                return
 
-## Get the target verilog file
-if len(sys.argv) != 2:
-    usage()
+        if re.match(r"[A-Za-z_]", char):
+            self.text_buf = char
+            self.cur_state = "SCAN_CS_IDENTIFIER"
+        elif re.match(r"[0-9]", char):
+            self.text_buf = char
+            self.cur_state = "SCAN_CS_NUMBER"
+        else:
+            self.cur_token.token_text = char
+            self.cur_token.token_type = self.token_query.get_symbol_type(char)
+            self.cur_state = "SCAN_CS_IDLE"
 
-TOKEN_DICT = token_type.TokenTypeDict()
-for line in open_file_in_list(sys.argv[1]):
-    for expression in str.split(line):
-        print(expression)
-        for char in list(expression):
-            token_type_num = TOKEN_DICT.get_symbol_type(char)
-            if token_type_num != 999:
-                print("Current char ", char, " is ", TOKEN_DICT.get_token_string(token_type_num))
+        return
+
+
+    def handler_scan_identifier(self):
+        """ Get a next char and see if the identifier is completed """
+        char = self.reader.get_next_valid_char()
+
+        if char == -1:
+            # End of file
+            self.cur_token.token_text = self.text_buf
+            self.cur_token.token_type = self.token_query.get_symbol_type(self.text_buf)
+            if self.cur_token.token_type == -1:
+                self.cur_token.token_type = self.token_query.token_dict["TOKEN_VARIABLE"]
+            self.cur_state = "SCAN_CS_IDLE"
+        elif re.match(r"[0-9A-Za-z_]", char):
+            self.text_buf = self.text_buf + char
+            self.cur_state = "SCAN_CS_IDENTIFIER"
+        else:
+            if re.match(r"\S", char):
+                self.reader.retract(1)
+            self.cur_token.token_text = self.text_buf
+            self.cur_token.token_type = self.token_query.get_symbol_type(self.text_buf)
+            if self.cur_token.token_type == -1:
+                self.cur_token.token_type = self.token_query.token_dict["TOKEN_VARIABLE"]
+            self.cur_state = "SCAN_CS_IDLE"
+
+        return
+
+    def handler_scan_number(self):
+        """ Get a next char and see if the number is completed """
+        char = self.reader.get_next_valid_char()
+
+        if re.match(r"[0-9]", char):
+            self.text_buf = self.text_buf + char
+            self.cur_state = "SCAN_CS_NUMBER"
+        elif char == "'":
+            self.text_buf = self.text_buf + char
+            self.cur_state = "SCAN_CS_NUMBER_TYPE"
+        else:
+            if re.match(r"\S", char):
+                self.reader.retract(1)
+            self.cur_token.token_text = self.text_buf
+            self.cur_token.token_type = self.token_query.token_dict["TOKEN_NUMBER"]
+            self.cur_state = "SCAN_CS_IDLE"
+
+        return
+
+
+    def handler_scan_number_type(self):
+        """ Get a next char and see if the number type is correct """
+        char = self.reader.get_next_valid_char()
+
+        if re.match(r"[hdob]", char):
+            self.text_buf = self.text_buf + char
+            self.cur_state = "SCAN_CS_NUMBER_POST"
+        else:
+            print("ERROR!! A number with a \"'\" should followed the type of number\n")
+            print("Now receive a \"", char, "\"\n")
+            quit()
+
+        return
+
+
+    def handler_scan_number_post(self):
+        """ Get a next char and see if the number is completed """
+        char = self.reader.get_next_valid_char()
+
+        if re.match(r"[0-9a-fA-F]", char):
+            self.text_buf = self.text_buf + char
+            self.cur_state = "SCAN_CS_NUMBER_POST"
+        else:
+            if re.match(r"\S", char):
+                self.reader.retract(1)
+            self.cur_token.token_text = self.text_buf
+            self.cur_token.token_type = self.token_query.token_dict["TOKEN_NUMBER"]
+            self.cur_state = "SCAN_CS_IDLE"
+
+        return

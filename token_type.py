@@ -54,6 +54,12 @@ class TokenTypeDict:
     token_dict["TOKEN_OR"] = token_dict["TOKEN_AND"] + 1
     #token ~
     token_dict["TOKEN_NOT"] = token_dict["TOKEN_OR"] + 1
+    #token number
+    token_dict["TOKEN_NUMBER"] = token_dict["TOKEN_NOT"] + 1
+    #token variable
+    token_dict["TOKEN_VARIABLE"] = token_dict["TOKEN_NUMBER"] + 1
+    #token ,
+    token_dict["TOKEN_COMMA"] = token_dict["TOKEN_VARIABLE"] + 1
 
     token_backward_dict = {}
     for key, value in token_dict.items():
@@ -83,12 +89,13 @@ class TokenTypeDict:
     symbol_dict["&"] = "TOKEN_AND"
     symbol_dict["|"] = "TOKEN_OR"
     symbol_dict["~"] = "TOKEN_NOT"
+    symbol_dict[","] = "TOKEN_COMMA"
 
     def get_symbol_type(self, symbol):
         """ Return the number of the token type, or return 999 if it is not a token """
         if symbol in self.symbol_dict:
             return self.token_dict[self.symbol_dict[symbol]]
-        return 999
+        return -1
 
     def get_token_string(self, type_number):
         """ Return the string of the token """
