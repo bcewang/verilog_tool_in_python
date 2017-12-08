@@ -60,6 +60,12 @@ class TokenTypeDict:
     token_dict["TOKEN_VARIABLE"] = token_dict["TOKEN_NUMBER"] + 1
     #token ,
     token_dict["TOKEN_COMMA"] = token_dict["TOKEN_VARIABLE"] + 1
+    #token keyunit, ms/us/ns/ps/fs
+    token_dict["TOKEN_KEYUNIT"] = token_dict["TOKEN_COMMA"] + 1
+    #token keydir, input/output/inout
+    token_dict["TOKEN_KEYDIR"] = token_dict["TOKEN_KEYUNIT"] + 1
+    #token keytype, wire/reg
+    token_dict["TOKEN_KEYTYPE"] = token_dict["TOKEN_KEYDIR"] + 1
 
     token_backward_dict = {}
     for key, value in token_dict.items():
@@ -95,6 +101,12 @@ class TokenTypeDict:
         """ Return the number of the token type, or return 999 if it is not a token """
         if symbol in self.symbol_dict:
             return self.token_dict[self.symbol_dict[symbol]]
+        elif symbol in ["ms", "us", "ns", "ps", "fs"]:
+            return self.token_dict["TOKEN_KEYUNIT"]
+        elif symbol in ["input", "output", "inout"]:
+            return self.token_dict["TOKEN_KEYDIR"]
+        elif symbol in ["reg", "wire"]:
+            return self.token_dict["TOKEN_KEYTYPE"]
         return -1
 
     def get_token_string(self, type_number):
@@ -109,12 +121,10 @@ class TokenTypeDict:
 
 class BasicToken:
     """ The base class of token """
-    token_text = ""
-    token_type = 0
-
-    def __init__(self, token_text, token_type):
+    def __init__(self, token_text="", token_type=0, line_number=0):
         self.token_text = token_text
         self.token_type = token_type
+        self.line_number = line_number
 
     def get_token_type(self):
         """ return the number of the token type """

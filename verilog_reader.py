@@ -40,6 +40,6 @@ class VerilogReader:
                 self.cur_position = 0
                 char = '\n'
             else:
-                return -1
+                return (self.cur_line_num, -1)
 
-        return char
+        return (self.cur_line_num, char)

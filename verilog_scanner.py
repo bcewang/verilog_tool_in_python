@@ -11,10 +11,11 @@ class VerilogScanner:
     """ A verilog scanner """
     def __init__(self, verilog_text_list):
         self.token_query = token_type.TokenTypeDict()
-        self.cur_token = token_type.BasicToken("", 0)
+        self.cur_token = token_type.BasicToken()
         self.reader = verilog_reader.VerilogReader(verilog_text_list)
         self.cur_state = "SCAN_CS_IDLE"
         self.text_buf = ""
+        self.line_num = ""
         self.handler_query = {"SCAN_CS_IDLE" : self.handler_scan_idle,
                               "SCAN_CS_START" : self.handler_scan_start,
                               "SCAN_CS_IDENTIFIER" : self.handler_scan_identifier,
@@ -30,7 +31,10 @@ class VerilogScanner:
             cur_handler = self.handler_query[self.cur_state]
             cur_handler()
 
-        return self.cur_token
+        print("GET TOKEN:", self.cur_token.token_type, self.cur_token.token_text)
+        new_token = token_type.BasicToken(
+            self.cur_token.token_text, self.cur_token.token_type, self.cur_token.line_number)
+        return new_token
 
 
     def handler_scan_idle(self):
@@ -41,17 +45,21 @@ class VerilogScanner:
 
     def handler_scan_start(self):
         """ Get a next char and decide jumping to which state """
-        char = self.reader.get_next_valid_char()
+        (line, char) = self.reader.get_next_valid_char()
         if char == -1:
             self.cur_token.token_text = "End of File"
             self.cur_token.token_type = self.token_query.token_dict["TOKEN_EOF"]
+            self.cur_token.line_number = self.line_num
+            self.line_num = line
             self.cur_state = "SCAN_CS_IDLE"
             return
         while re.match(r"\s", char):
-            char = self.reader.get_next_valid_char()
+            (line, char) = self.reader.get_next_valid_char()
             if char == -1:
                 self.cur_token.token_text = "End of File"
                 self.cur_token.token_type = self.token_query.token_dict["TOKEN_EOF"]
+                self.cur_token.line_number = self.line_num
+                self.line_num = line
                 self.cur_state = "SCAN_CS_IDLE"
                 return
 
@@ -64,6 +72,8 @@ class VerilogScanner:
         else:
             self.cur_token.token_text = char
             self.cur_token.token_type = self.token_query.get_symbol_type(char)
+            self.cur_token.line_number = self.line_num
+            self.line_num = line
             self.cur_state = "SCAN_CS_IDLE"
 
         return
@@ -71,7 +81,7 @@ class VerilogScanner:
 
     def handler_scan_identifier(self):
         """ Get a next char and see if the identifier is completed """
-        char = self.reader.get_next_valid_char()
+        (line, char) = self.reader.get_next_valid_char()
 
         if char == -1:
             # End of file
@@ -79,6 +89,8 @@ class VerilogScanner:
             self.cur_token.token_type = self.token_query.get_symbol_type(self.text_buf)
             if self.cur_token.token_type == -1:
                 self.cur_token.token_type = self.token_query.token_dict["TOKEN_VARIABLE"]
+            self.cur_token.line_number = self.line_num
+            self.line_num = line
             self.cur_state = "SCAN_CS_IDLE"
         elif re.match(r"[0-9A-Za-z_]", char):
             self.text_buf = self.text_buf + char
@@ -90,13 +102,15 @@ class VerilogScanner:
             self.cur_token.token_type = self.token_query.get_symbol_type(self.text_buf)
             if self.cur_token.token_type == -1:
                 self.cur_token.token_type = self.token_query.token_dict["TOKEN_VARIABLE"]
+            self.cur_token.line_number = self.line_num
+            self.line_num = line
             self.cur_state = "SCAN_CS_IDLE"
 
         return
 
     def handler_scan_number(self):
         """ Get a next char and see if the number is completed """
-        char = self.reader.get_next_valid_char()
+        (line, char) = self.reader.get_next_valid_char()
 
         if re.match(r"[0-9]", char):
             self.text_buf = self.text_buf + char
@@ -109,6 +123,8 @@ class VerilogScanner:
                 self.reader.retract(1)
             self.cur_token.token_text = self.text_buf
             self.cur_token.token_type = self.token_query.token_dict["TOKEN_NUMBER"]
+            self.cur_token.line_number = self.line_num
+            self.line_num = line
             self.cur_state = "SCAN_CS_IDLE"
 
         return
@@ -116,7 +132,7 @@ class VerilogScanner:
 
     def handler_scan_number_type(self):
         """ Get a next char and see if the number type is correct """
-        char = self.reader.get_next_valid_char()
+        (_, char) = self.reader.get_next_valid_char()
 
         if re.match(r"[hdob]", char):
             self.text_buf = self.text_buf + char
@@ -131,7 +147,7 @@ class VerilogScanner:
 
     def handler_scan_number_post(self):
         """ Get a next char and see if the number is completed """
-        char = self.reader.get_next_valid_char()
+        (line, char) = self.reader.get_next_valid_char()
 
         if re.match(r"[0-9a-fA-F]", char):
             self.text_buf = self.text_buf + char
@@ -141,6 +157,8 @@ class VerilogScanner:
                 self.reader.retract(1)
             self.cur_token.token_text = self.text_buf
             self.cur_token.token_type = self.token_query.token_dict["TOKEN_NUMBER"]
+            self.cur_token.line_number = self.line_num
+            self.line_num = line
             self.cur_state = "SCAN_CS_IDLE"
 
         return

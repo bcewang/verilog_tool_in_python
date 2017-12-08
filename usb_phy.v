@@ -4,6 +4,9 @@ dfkjldfs
 afjakfl
 adsfjkdfajasdlf */ //hjdfkshjadshfka
 
+`define SIM_MODE 1
+`define FAST_RESET
+
 module usb_phy(
 ////////////////////////////////////
 		vbus,
