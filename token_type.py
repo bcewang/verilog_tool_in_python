@@ -8,8 +8,10 @@ class TokenTypeDict:
     token_dict = {}
     # token EOF
     token_dict["TOKEN_EOF"] = 0
+    # token #
+    token_dict["TOKEN_HASH"] = token_dict["TOKEN_EOF"] + 1
     # token :
-    token_dict["TOKEN_COLON"] = token_dict["TOKEN_EOF"] + 1
+    token_dict["TOKEN_COLON"] = token_dict["TOKEN_HASH"] + 1
     # token ;
     token_dict["TOKEN_SEMICOLON"] = token_dict["TOKEN_COLON"] + 1
     #token (
@@ -66,12 +68,17 @@ class TokenTypeDict:
     token_dict["TOKEN_KEYDIR"] = token_dict["TOKEN_KEYUNIT"] + 1
     #token keytype, wire/reg
     token_dict["TOKEN_KEYTYPE"] = token_dict["TOKEN_KEYDIR"] + 1
+    #token keyop, +, -, &, |, ~, !
+    token_dict["TOKEN_KEYOP"] = token_dict["TOKEN_KEYTYPE"] + 1
+    #token keyword, module, endmodule, define, timescale
+    token_dict["TOKEN_KEYWORD"] = token_dict["TOKEN_KEYOP"] + 1
 
     token_backward_dict = {}
     for key, value in token_dict.items():
         token_backward_dict[value] = key
 
     symbol_dict = {}
+    symbol_dict["#"] = "TOKEN_HASH"
     symbol_dict[":"] = "TOKEN_COLON"
     symbol_dict[";"] = "TOKEN_SEMICOLON"
     symbol_dict["("] = "TOKEN_LEFTPAREN"
@@ -99,15 +106,23 @@ class TokenTypeDict:
 
     def get_symbol_type(self, symbol):
         """ Return the number of the token type, or return 999 if it is not a token """
+        symbol_type = -1
+
         if symbol in self.symbol_dict:
-            return self.token_dict[self.symbol_dict[symbol]]
+            if symbol in ["+", "-", "&", "|", "~", "!"]:
+                symbol_type = self.token_dict["TOKEN_KEYOP"]
+            else:
+                symbol_type = self.token_dict[self.symbol_dict[symbol]]
         elif symbol in ["ms", "us", "ns", "ps", "fs"]:
-            return self.token_dict["TOKEN_KEYUNIT"]
+            symbol_type = self.token_dict["TOKEN_KEYUNIT"]
         elif symbol in ["input", "output", "inout"]:
-            return self.token_dict["TOKEN_KEYDIR"]
+            symbol_type = self.token_dict["TOKEN_KEYDIR"]
         elif symbol in ["reg", "wire"]:
-            return self.token_dict["TOKEN_KEYTYPE"]
-        return -1
+            symbol_type = self.token_dict["TOKEN_KEYTYPE"]
+        elif symbol in ["timescale", "define", "module", "endmodule"]:
+            symbol_type = self.token_dict["TOKEN_KEYWORD"]
+
+        return symbol_type
 
     def get_token_string(self, type_number):
         """ Return the string of the token """

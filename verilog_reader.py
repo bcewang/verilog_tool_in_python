@@ -12,7 +12,7 @@ class VerilogReader:
         self.cur_position = 0
         self.cur_boundary = len(self.cur_line)
 
-    def get_next_char(self):
+    def __get_next_char(self):
         """ return a char or -1 if there is no remained char"""
         if self.cur_position >= self.cur_boundary:
             return -1
@@ -31,7 +31,7 @@ class VerilogReader:
 
     def get_next_valid_char(self):
         """ Get next valid char in the reader """
-        char = self.get_next_char()
+        char = self.__get_next_char()
         if char == -1:
             self.cur_line_num = self.cur_line_num + 1
             if self.cur_line_num < self.total_line_num:

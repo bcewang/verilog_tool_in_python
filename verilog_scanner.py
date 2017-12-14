@@ -15,13 +15,13 @@ class VerilogScanner:
         self.reader = verilog_reader.VerilogReader(verilog_text_list)
         self.cur_state = "SCAN_CS_IDLE"
         self.text_buf = ""
-        self.line_num = ""
-        self.handler_query = {"SCAN_CS_IDLE" : self.handler_scan_idle,
-                              "SCAN_CS_START" : self.handler_scan_start,
-                              "SCAN_CS_IDENTIFIER" : self.handler_scan_identifier,
-                              "SCAN_CS_NUMBER" : self.handler_scan_number,
-                              "SCAN_CS_NUMBER_TYPE" : self.handler_scan_number_type,
-                              "SCAN_CS_NUMBER_POST" : self.handler_scan_number_post}
+        self.line_num = 0
+        self.handler_query = {"SCAN_CS_IDLE" : self.__handler_scan_idle,
+                              "SCAN_CS_START" : self.__handler_scan_start,
+                              "SCAN_CS_IDENTIFIER" : self.__handler_scan_identifier,
+                              "SCAN_CS_NUMBER" : self.__handler_scan_number,
+                              "SCAN_CS_NUMBER_TYPE" : self.__handler_scan_number_type,
+                              "SCAN_CS_NUMBER_POST" : self.__handler_scan_number_post}
 
 
     def get_next_token(self):
@@ -36,14 +36,17 @@ class VerilogScanner:
             self.cur_token.token_text, self.cur_token.token_type, self.cur_token.line_number)
         return new_token
 
+    def get_line_num(self):
+        """ return the current line number """
+        return self.line_num
 
-    def handler_scan_idle(self):
+    def __handler_scan_idle(self):
         """ The state handler should not be called """
         print("ERROR!! The handler of IDLE should not be called in state:\n", self.cur_state)
         quit()
 
 
-    def handler_scan_start(self):
+    def __handler_scan_start(self):
         """ Get a next char and decide jumping to which state """
         (line, char) = self.reader.get_next_valid_char()
         if char == -1:
@@ -79,7 +82,7 @@ class VerilogScanner:
         return
 
 
-    def handler_scan_identifier(self):
+    def __handler_scan_identifier(self):
         """ Get a next char and see if the identifier is completed """
         (line, char) = self.reader.get_next_valid_char()
 
@@ -108,7 +111,7 @@ class VerilogScanner:
 
         return
 
-    def handler_scan_number(self):
+    def __handler_scan_number(self):
         """ Get a next char and see if the number is completed """
         (line, char) = self.reader.get_next_valid_char()
 
@@ -130,7 +133,7 @@ class VerilogScanner:
         return
 
 
-    def handler_scan_number_type(self):
+    def __handler_scan_number_type(self):
         """ Get a next char and see if the number type is correct """
         (_, char) = self.reader.get_next_valid_char()
 
@@ -145,7 +148,7 @@ class VerilogScanner:
         return
 
 
-    def handler_scan_number_post(self):
+    def __handler_scan_number_post(self):
         """ Get a next char and see if the number is completed """
         (line, char) = self.reader.get_next_valid_char()
 
