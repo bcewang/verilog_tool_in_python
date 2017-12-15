@@ -28,15 +28,8 @@ class NodeTypeDict:
     node_dict["NODE_BLK_PARAM_EXP_NAME"] = node_dict["NODE_BLK_PARAM_EXP"] + 1
     node_dict["NODE_BLK_PARAM_EXP_VALUE"] = node_dict["NODE_BLK_PARAM_EXP_NAME"] + 1
     node_dict["NODE_BLK_PORT_EXP"] = node_dict["NODE_BLK_PARAM_EXP_VALUE"] + 1
-    node_dict["NODE_BLK_PORT_EXP_DIR"] = node_dict["NODE_BLK_PORT_EXP"] + 1
-    node_dict["NODE_BLK_PORT_EXP_TYPE"] = node_dict["NODE_BLK_PORT_EXP_DIR"] + 1
-    node_dict["NODE_BLK_PORT_EXP_WIDTH"] = node_dict["NODE_BLK_PORT_EXP_TYPE"] + 1
-    node_dict["NODE_BLK_PORT_EXP_NAME"] = node_dict["NODE_BLK_PORT_EXP_WIDTH"] + 1
-    node_dict["NODE_BLK_SIG_EXP"] = node_dict["NODE_BLK_PORT_EXP_NAME"] + 1
-    node_dict["NODE_BLK_SIG_EXP_TYPE"] = node_dict["NODE_BLK_SIG_EXP"] + 1
-    node_dict["NODE_BLK_SIG_EXP_WIDTH"] = node_dict["NODE_BLK_SIG_EXP_TYPE"] + 1
-    node_dict["NODE_BLK_SIG_EXP_NAME"] = node_dict["NODE_BLK_SIG_EXP_WIDTH"] + 1
-    node_dict["NODE_BLK_ASSIGN_EXP"] = node_dict["NODE_BLK_SIG_EXP_NAME"] + 1
+    node_dict["NODE_BLK_SIG_EXP"] = node_dict["NODE_BLK_PORT_EXP"] + 1
+    node_dict["NODE_BLK_ASSIGN_EXP"] = node_dict["NODE_BLK_SIG_EXP"] + 1
     node_dict["NODE_BLK_ASSIGN_EXP_LVALUE"] = node_dict["NODE_BLK_ASSIGN_EXP"] + 1
     node_dict["NODE_BLK_ASSIGN_EXP_RVALUE"] = node_dict["NODE_BLK_ASSIGN_EXP_LVALUE"] + 1
     node_dict["NODE_BLK_ALWAYS"] = node_dict["NODE_BLK_ASSIGN_EXP_RVALUE"] + 1

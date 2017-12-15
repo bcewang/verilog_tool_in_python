@@ -16,8 +16,8 @@ class VerilogParser:
         self.node_query = parsing_tree_type.NodeTypeDict()
         self.parsing_tree = parsing_tree_type.BasicNode(
             "ROOT", self.node_query.node_dict["NODE_VERILOG_FILE"], None)
-        self.parsing_tree.node_left = self.__syn_verilog_file(None)
-        self.print_parsing_tree(self.parsing_tree, 0)
+        self.parsing_tree.node_left = self.__syn_verilog_file(self.parsing_tree)
+        #self.print_parsing_tree(self.parsing_tree, 0)
 
     def print_parsing_tree(self, root, level):
         """ Recursive print the text of all nodes """
@@ -25,11 +25,11 @@ class VerilogParser:
 
         print(root.node_text, end='')
         if root.node_left != None:
-           print("\n", " "*level, new_level, "->", end='')
-           self.print_parsing_tree(root.node_left, new_level)
+            print("\n", " "*level, new_level, "->", end='')
+            self.print_parsing_tree(root.node_left, new_level)
         if root.node_right != None:
-           print("\n", " "*level, new_level, "-->", end='')
-           self.print_parsing_tree(root.node_right, new_level)
+            print("\n", " "*level, new_level, "-->", end='')
+            self.print_parsing_tree(root.node_right, new_level)
 
     def __error_unexpect_token(self, source, parent_node):
         """ Encounter unexpect token, stop parsing """
@@ -178,6 +178,8 @@ class VerilogParser:
             module_port_node = parsing_tree_type.BasicNode(
                 "MODULE_PORT", self.node_query.node_dict["NODE_BLK_MODULE_PORT"], parent)
             self.consume_cur_token(1)
+        else:
+            self.__error_unexpect_token("module_port start", parent)
 
         if self.cur_token.token_type != self.token_query.token_dict["TOKEN_RIGHTPAREN"]:
             module_port_node.node_left = self.__syn_module_port_list(module_port_node)
@@ -187,7 +189,7 @@ class VerilogParser:
             self.consume_cur_token(2)
             return module_port_node
         else:
-            self.__error_unexpect_token("module_port", parent)
+            self.__error_unexpect_token("module_port end", parent)
 
     def __syn_module_port_list(self, parent):
         """ BLK_MODULE_PORT_LIST node handler """
@@ -297,9 +299,9 @@ class VerilogParser:
             "MODULE_CONTENT", self.node_query.node_dict["NODE_BLK_MODULE_CONTENT"], parent)
 
         if self.cur_token.token_type == self.token_query.token_dict["TOKEN_KEYDIR"]:
-            module_content_node.node_left = self.__syn_port_exp(module_content_node)
+            module_content_node.node_left = self.__syn_blk_port_exp(module_content_node)
         elif self.cur_token.token_type == self.token_query.token_dict["TOKEN_KEYTYPE"]:
-            module_content_node.node_left = self.__syn_sig_exp(module_content_node)
+            module_content_node.node_left = self.__syn_blk_sig_exp(module_content_node)
         elif self.cur_token.token_type == self.token_query.token_dict["TOKEN_VARIABLE"]:
             module_content_node.node_left = self.__syn_submodule(module_content_node)
         elif self.cur_token.token_text == "endmodule":
@@ -311,7 +313,7 @@ class VerilogParser:
         module_content_node.node_right = self.__syn_module_content(module_content_node)
         return module_content_node
 
-    def __syn_port_exp(self, parent):
+    def __syn_blk_port_exp(self, parent):
         """ BLK_PORT_EXP node handler """
         port_exp_node = parsing_tree_type.BasicNode(
             "BLK_PORT_EXP", self.node_query.node_dict["NODE_BLK_PORT_EXP"], parent)
@@ -324,7 +326,7 @@ class VerilogParser:
         else:
             self.__error_unexpect_token("port exp end", parent)
 
-    def __syn_sig_exp(self, parent):
+    def __syn_blk_sig_exp(self, parent):
         """ BLK_SIG_EXP node handler """
         sig_exp_node = parsing_tree_type.BasicNode(
             "BLK_SIG_EXP", self.node_query.node_dict["NODE_BLK_SIG_EXP"], parent)

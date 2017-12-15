@@ -4,7 +4,7 @@
 """
 #!/usr/bin/env python
 import sys
-import verilog_parser
+import verilog_syntaxer
 import common_tool
 
 ## Function usage()
@@ -23,7 +23,7 @@ def usage():
 if len(sys.argv) != 2:
     usage()
 
-PARSER = verilog_parser.VerilogParser(common_tool.open_file_in_list(sys.argv[1]))
+PARSER = verilog_syntaxer.VerilogSyntaxer(sys.argv[1], common_tool.open_file_in_list(sys.argv[1]))
 
 #cur_token = SCANNER.get_next_token()
 #while cur_token.token_type != 0:

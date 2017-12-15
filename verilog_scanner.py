@@ -31,7 +31,7 @@ class VerilogScanner:
             cur_handler = self.handler_query[self.cur_state]
             cur_handler()
 
-        print("GET TOKEN:", self.cur_token.token_type, self.cur_token.token_text)
+        #print("GET TOKEN:", self.cur_token.token_type, self.cur_token.token_text)
         new_token = token_type.BasicToken(
             self.cur_token.token_text, self.cur_token.token_type, self.cur_token.line_number)
         return new_token
