@@ -45,7 +45,11 @@ class VModule:
 
     def add_signal(self, signal_type, signal_node):
         """ Add a new signal """
-        print(signal_type, signal_node)
+        if signal_type != "net":
+            for check_node in self.signal_dict["net"]:
+                if check_node.signal_name == signal_node.signal_name:
+                    self.signal_dict["net"].remove(check_node)
+
         self.signal_dict[signal_type].append(signal_node)
 
     def add_submodule(self, submodule_node):
@@ -74,6 +78,8 @@ class VModule:
             signal.dump()
         for signal in self.signal_dict["net"]:
             signal.dump()
+        for submodule in self.submodule_list:
+            submodule.dump()
 
 class VSignal:
     """ The class of signal """
@@ -85,22 +91,44 @@ class VSignal:
 
     def dump(self):
         """ Dump the content of this signal instance """
-        if self.signal_width != 0:
-            signal_lindex = self.signal_width - 1
-        else:
-            signal_lindex = 0
-
-        if self.array_width != 0:
-            array_rindex = self.array_width - 1
-        else:
-            array_rindex = 0
-
-        print(self.net_type, " [", signal_lindex, ":0]  ",
-              self.signal_name, "[0:", array_rindex, "]")
+        print(self.net_type, " [", self.signal_width, ":0]  ",
+              self.signal_name, "[0:", self.array_width, "]")
 
 class VSubmodule:
     """ The class of submodule """
-    def __init__(self, name):
-        self.file_name = name
+    def __init__(self, source_name):
+        self.source_name = source_name
+        self.instance_name = ""
         self.param_list = []
         self.connect_list = []
+
+    def update_instance_name(self, instance_name):
+        """ Update the instance name"""
+        self.instance_name = instance_name
+
+    def add_param(self, param_node):
+        """ Add a new parameter """
+        self.param_list.append(param_node)
+
+    def add_connect(self, connect_node):
+        """ Add a new connection """
+        self.connect_list.append(connect_node)
+
+    def dump(self):
+        """ Dump the content of this submodule instance """
+        print("SubModule Source Name:", self.source_name)
+        print("SubModule Instance Name:", self.instance_name)
+        for param in self.param_list:
+            param.dump()
+        for connect in self.connect_list:
+            connect.dump()
+
+class VConnect:
+    """ The class of connection """
+    def __init__(self, name, vector):
+        self.connect_name = name
+        self.connect_vector = vector
+
+    def dump(self):
+        """ Dump the content of this connect instance """
+        print(self.connect_name, self.connect_vector)

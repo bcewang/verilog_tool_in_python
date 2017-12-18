@@ -251,7 +251,7 @@ class VerilogParser:
     def __syn_keytype(self, parent):
         """ KEYTYPE node handler """
         keytype_node = parsing_tree_type.BasicNode(
-            "SIGNAL_TYPE", self.node_query.node_dict["NODE_EXP_KEYTYPE"], parent)
+            self.cur_token.token_text, self.node_query.node_dict["NODE_EXP_KEYTYPE"], parent)
         self.consume_cur_token(1)
         return keytype_node
 
@@ -282,7 +282,7 @@ class VerilogParser:
             self.__error_unexpect_token("width right bracket", parent)
 
     def __syn_signal_identifier(self, parent):
-        """ SIGNAL_TYPE node handler """
+        """ SIGNAL_IDENTIFIER node handler """
         signal_identifier_node = parsing_tree_type.BasicNode(
             "SIGNAL_IDENTIFIER", self.node_query.node_dict["NODE_EXP_SIGNAL_IDENTIFIER"], parent)
         signal_identifier_node.node_left = self.__syn_name(signal_identifier_node)
@@ -431,7 +431,7 @@ class VerilogParser:
             self.__error_unexpect_token("connect_end", parent)
 
     def __syn_submodule_port(self, parent):
-        """ SUBMODULE PARAM node handler """
+        """ SUBMODULE PORT node handler """
         if self.cur_token.token_type == self.token_query.token_dict["TOKEN_LEFTPAREN"]:
             submodule_port_node = parsing_tree_type.BasicNode(
                 "SUBMODULE_PORT", self.node_query.node_dict["NODE_BLK_SUBMODULE_PARAM"], parent)
@@ -502,7 +502,12 @@ class VerilogParser:
         if (self.cur_token.token_type == self.token_query.token_dict["TOKEN_NUMBER"] and
                 self.nxt_token.token_type == self.token_query.token_dict["TOKEN_LEFTBRACE"]):
             collect_node.node_left = self.__syn_number(collect_node)
+            self.consume_cur_token(1)
             collect_node.node_right = self.__syn_collect(collect_node)
+            if self.cur_token.token_type == self.token_query.token_dict["TOKEN_RIGHTBRACE"]:
+                self.consume_cur_token(1)
+            else:
+                self.__error_unexpect_token("vector_rightparen", parent)
         else:
             collect_node.node_left = self.__syn_vector(collect_node)
             if self.cur_token.token_type == self.token_query.token_dict["TOKEN_COMMA"]:
