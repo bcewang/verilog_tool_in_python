@@ -4,7 +4,7 @@
 """
 import verilog_parser
 import parsing_tree_type
-import verilog_class
+import vfile_component
 
 class VerilogSyntaxer:
     """ A verilog syntaxerer """
@@ -41,7 +41,7 @@ class VerilogSyntaxer:
     def __parsing_tree_handler(self, parsing_tree, vfile_name):
         if (parsing_tree.node_type == self.node_query.node_dict["NODE_VERILOG_FILE"] and
                 parsing_tree.node_left.node_type == self.node_query.node_dict["NODE_VERILOG_FILE"]):
-            self.cur_file = verilog_class.VFile(vfile_name)
+            self.cur_file = vfile_component.VFile(vfile_name)
             self.__handler_branch(parsing_tree.node_left)
         else:
             print("ERROR!! The parsing tree is unexpected")
@@ -79,7 +79,7 @@ class VerilogSyntaxer:
 
     def __handler_module(self, root):
         """ Handle the module node """
-        self.cur_module = verilog_class.VModule(root.node_left.node_text)
+        self.cur_module = vfile_component.VModule(root.node_left.node_text)
         self.cur_file.add_module(self.cur_module)
         self.__handler_branch(root.node_right)
 
@@ -109,7 +109,7 @@ class VerilogSyntaxer:
         if root.node_right.node_right != None:
             (cur_array_width, _) = self.__handler_width(root.node_right.node_right)
 
-        cur_signal_node = verilog_class.VSignal(cur_name, cur_net_type,
+        cur_signal_node = vfile_component.VSignal(cur_name, cur_net_type,
                                                 cur_signal_width, cur_array_width)
         self.cur_module.add_signal(signal_type, cur_signal_node)
 
@@ -134,7 +134,7 @@ class VerilogSyntaxer:
 
     def __handler_submodule(self, root):
         """ Handle the submodule node """
-        self.cur_submodule = verilog_class.VSubmodule(root.node_left.node_text)
+        self.cur_submodule = vfile_component.VSubmodule(root.node_left.node_text)
         self.cur_module.add_submodule(self.cur_submodule)
         self.__handler_branch(root.node_right)
 
@@ -157,7 +157,7 @@ class VerilogSyntaxer:
             connect_vector = self.__handler_vector(root.node_right)
         else:
             connect_vector = ""
-        cur_connect = verilog_class.VConnect(connect_name, connect_vector)
+        cur_connect = vfile_component.VConnect(connect_name, connect_vector)
         connect_add_func(cur_connect)
 
     def __handler_vector(self, root):
